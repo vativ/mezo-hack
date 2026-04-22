@@ -24,7 +24,7 @@ This is a hackathon starter template. Fork it, swap `/joke` for your own paywall
 ```bash
 cp .env.example server/.env
 cp .env.example client/.env
-# Edit both: fill PAYEE_ADDRESS in server/.env, CLIENT_PRIVATE_KEY in client/.env
+# Edit both: fill EVM_ADDRESS in server/.env, CLIENT_PRIVATE_KEY in client/.env
 ```
 
 Install dependencies (each workspace installs its own tarball set):
@@ -68,7 +68,7 @@ pnpm run client
 ## How it works
 
 1. Client GETs `/joke` with no payment → server returns `402 Payment Required` with an x402 challenge (scheme: `exact`, asset: mUSD, amount: `1000000000000000`).
-2. `wrapFetchWithPayment` signs a permit2 `SignatureTransferDetails` authorization for `amount` from the client wallet to the server's `PAYEE_ADDRESS`, retries the request with an `X-PAYMENT` header.
+2. `wrapFetchWithPayment` signs a permit2 `SignatureTransferDetails` authorization for `amount` from the client wallet to the server's `EVM_ADDRESS`, retries the request with an `X-PAYMENT` header.
 3. Server's `paymentMiddleware` forwards the payload to the facilitator at `FACILITATOR_URL`. The facilitator submits the on-chain `permitTransferFrom` tx.
 4. Facilitator returns settlement receipt; server sends `200 OK` with the joke + a `PAYMENT-RESPONSE` header containing the tx hash.
 
