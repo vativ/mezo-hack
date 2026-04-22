@@ -21,14 +21,14 @@ import type { Network } from "@x402/core/types";
 
 dotenv.config();
 
-if (!process.env.PAYEE_ADDRESS) {
-  console.error("PAYEE_ADDRESS is required. Copy .env.example to .env and fill in your wallet address.");
+if (!process.env.EVM_ADDRESS) {
+  console.error("EVM_ADDRESS is required. Copy .env.example to .env and fill in your wallet address.");
   process.exit(1);
 }
 
 const PORT = parseInt(process.env.PORT || "3000");
 const FACILITATOR_URL = process.env.FACILITATOR_URL || "https://facilitator.vativ.io";
-const PAYEE_ADDRESS = process.env.PAYEE_ADDRESS as `0x${string}`;
+const EVM_ADDRESS = process.env.EVM_ADDRESS as `0x${string}`;
 const NETWORK = (process.env.NETWORK || "eip155:31611") as Network;
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -61,7 +61,7 @@ app.use(
         accepts: {
           scheme: "exact",
           network: NETWORK,
-          payTo: PAYEE_ADDRESS,
+          payTo: EVM_ADDRESS,
           price: "$0.001",
           maxTimeoutSeconds: 300,
         },
@@ -86,5 +86,5 @@ app.listen(PORT, () => {
   console.log(`Mezo x402 Humor Server on port ${PORT}`);
   console.log(`  GET /joke — 0.001 mUSD (x402 paywalled)`);
   console.log(`  Facilitator: ${FACILITATOR_URL}`);
-  console.log(`  Payee: ${PAYEE_ADDRESS}`);
+  console.log(`  Payee: ${EVM_ADDRESS}`);
 });
