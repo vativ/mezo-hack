@@ -1,0 +1,26 @@
+{
+  "name": "mezo-x402-joke-buyer",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "tsx src/index.ts",
+    "start:dev": "tsx watch src/index.ts"
+  },
+  "dependencies": {
+    "@x402/evm": "^2.10.0",
+    "@x402/fetch": "^2.10.0",
+    "dotenv": "^16.4.5",
+    "viem": "^2.47.12"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.1",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  },
+  "pnpm": {
+    "overrides": {
+      "@x402/evm": "https://github.com/vativ/x402-mezo-preview/releases/download/v2.10.0-mezo.7/x402-evm-2.10.0-mezo.7.tgz"
+    }
+  }
+}
