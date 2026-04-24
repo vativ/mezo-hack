@@ -1,6 +1,6 @@
 # apps/joke-buyer — Mezo x402 agentic joke-buyer
 
-A headless Node.js agent that buys jokes from [`humor.vativ.io/joke`](https://humor.vativ.io/joke) in a loop, signing x402 payment authorizations programmatically from a hot private key. No browser, no MetaMask — just a script that pays and gets paid.
+A headless Node.js agent that buys jokes from [`demo.vativ.io/joke`](https://demo.vativ.io/joke) in a loop, signing x402 payment authorizations programmatically from a hot private key. No browser, no MetaMask — just a script that pays and gets paid.
 
 This is Demo 1 of the Mezo agentic-payments series. It reuses the deployed humor seller on Mezo Testnet — the seller doesn't know or care that the client is a program.
 
@@ -9,7 +9,7 @@ This is Demo 1 of the Mezo agentic-payments series. It reuses the deployed humor
 1. Reads `CLIENT_PRIVATE_KEY` from `.env`.
 2. Derives a viem account and wraps `fetch` with `@x402/fetch`'s `wrapFetchWithPayment`.
 3. Loops `COUNT` times:
-   - `GET https://humor.vativ.io/joke` — server returns `402 Payment Required` with an x402 challenge (0.001 mUSD, scheme: `exact`, network: `eip155:31611`, asset: mUSD).
+   - `GET https://demo.vativ.io/joke` — server returns `402 Payment Required` with an x402 challenge (0.001 mUSD, scheme: `exact`, network: `eip155:31611`, asset: mUSD).
    - `@x402/fetch` signs a permit2 `SignatureTransferDetails` authorization from the client's wallet to the server's payee, retries the request with an `X-PAYMENT` header.
    - Humor's middleware forwards the payload to `facilitator.vativ.io`, which submits the on-chain `permitTransferFrom` tx and returns a settlement receipt.
    - Server returns `200 OK` with the joke and a `PAYMENT-RESPONSE` header containing the tx hash.
@@ -46,7 +46,7 @@ Expected output:
 === Mezo x402 Agentic Joke-Buyer ===
 Buyer:     0xfD9cC31Bab44C3d62335d82FA5F17ecf59c8e8f8
 Network:   eip155:31611
-Target:    https://humor.vativ.io/joke
+Target:    https://demo.vativ.io/joke
 Count:     3 jokes
 Balance:   0.7540 mUSD (754000000000000000 wei)
 
@@ -75,7 +75,7 @@ Buyer explorer: https://explorer.test.mezo.org/address/0xfD9cC31Bab44C3d62335d82
 | Variable            | Default                                 | Meaning                                    |
 | ------------------- | --------------------------------------- | ------------------------------------------ |
 | `CLIENT_PRIVATE_KEY`| —                                       | **Required.** Hot wallet key (testnet only)|
-| `RESOURCE_URL`      | `https://humor.vativ.io/joke`           | Paywalled endpoint to hit                  |
+| `RESOURCE_URL`      | `https://demo.vativ.io/joke`           | Paywalled endpoint to hit                  |
 | `COUNT`             | `3`                                     | Number of purchases per run                |
 | `NETWORK`           | `eip155:31611`                          | CAIP-2 chain id (Mezo Testnet)             |
 | `RPC_URL`           | `https://rpc.test.mezo.org`             | Read-only RPC for balance/allowance checks |
@@ -88,7 +88,7 @@ Also accepts `--count <N>` on the CLI, which takes precedence over `COUNT` in en
 
 - **`CLIENT_PRIVATE_KEY environment variable is required`** — you didn't create `.env` from `.env.example`, or left the placeholder value.
 - **`WARNING: mUSD not approved for Permit2`** — one-time setup is missing. Do `approve(permit2, max)` on the mUSD contract (`0x118917...Ac503`) for your client wallet. Canonical Permit2 is at `0x000000000022D473030F116dDEE9F6B43aC78BA3`.
-- **All purchases fail with HTTP 402 after retry** — `@x402/fetch` couldn't complete the sign-and-retry flow. Common causes: no mUSD balance, wrong chain in the `RESOURCE_URL`'s 402 challenge vs. what your wallet is configured for, facilitator offline. Run `curl https://facilitator.vativ.io/health` and `curl https://humor.vativ.io/health` to sanity check the seller and facilitator.
+- **All purchases fail with HTTP 402 after retry** — `@x402/fetch` couldn't complete the sign-and-retry flow. Common causes: no mUSD balance, wrong chain in the `RESOURCE_URL`'s 402 challenge vs. what your wallet is configured for, facilitator offline. Run `curl https://facilitator.vativ.io/health` and `curl https://demo.vativ.io/health` to sanity check the seller and facilitator.
 - **`does not provide an export named 'DEFAULT_STABLECOINS'`** — `pnpm.overrides` isn't forcing `@x402/evm` through the preview tarball. Canonical `@x402/evm@2.10.0` on npm omits Mezo-specific exports; the preview tarball restores them.
 - **Tx hash missing from output** — the seller didn't attach a `PAYMENT-RESPONSE` header. Script continues (joke still arrived) but logs a warning.
 

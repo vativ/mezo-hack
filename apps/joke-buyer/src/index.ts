@@ -1,5 +1,5 @@
 /**
- * Mezo x402 Agentic Joke-Buyer — loops N purchases of humor.vativ.io/joke
+ * Mezo x402 Agentic Joke-Buyer — loops N purchases of demo.vativ.io/joke
  * without a browser or MetaMask.
  *
  * Signs payment authorizations programmatically from a hot private key and
@@ -20,7 +20,7 @@ import { createPublicClient, http, erc20Abi } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { mezoTestnet } from "viem/chains";
 
-const RESOURCE_URL = process.env.RESOURCE_URL || "https://humor.vativ.io/joke";
+const RESOURCE_URL = process.env.RESOURCE_URL || "https://demo.vativ.io/joke";
 const NETWORK = process.env.NETWORK || "eip155:31611";
 const RPC_URL = process.env.RPC_URL || "https://rpc.test.mezo.org";
 const MUSD_ADDRESS =
