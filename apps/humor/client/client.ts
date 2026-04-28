@@ -90,7 +90,7 @@ async function main() {
   console.log("Data:", JSON.stringify(data, null, 2));
 
   // Extract settlement response (payment receipt) from PAYMENT-RESPONSE header
-  const paymentResponseHeader = response.headers.get("PAYMENT-RESPONSE") || response.headers.get("X-PAYMENT-RESPONSE");
+  const paymentResponseHeader = response.headers.get("PAYMENT-RESPONSE") || response.headers.get("PAYMENT-RESPONSE");
   if (paymentResponseHeader) {
     const settleResponse = decodePaymentResponseHeader(paymentResponseHeader);
     console.log("\nPAYMENT-RESPONSE received (payment receipt from resource server):");
