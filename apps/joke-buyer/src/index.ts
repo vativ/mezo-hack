@@ -15,7 +15,7 @@ import "dotenv/config";
 
 import { wrapFetchWithPayment, x402Client, decodePaymentResponseHeader } from "@x402/fetch";
 import { ExactEvmScheme } from "@x402/evm/exact/client";
-import { toClientEvmSigner, PERMIT2_ADDRESS } from "@x402/evm";
+import { toClientEvmSigner, PERMIT2_ADDRESS, DEFAULT_STABLECOINS } from "@x402/evm";
 import { createPublicClient, http, erc20Abi } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { mezoTestnet } from "viem/chains";
@@ -23,10 +23,17 @@ import { mezoTestnet } from "viem/chains";
 const RESOURCE_URL = process.env.RESOURCE_URL || "https://demo.vativ.io/joke";
 const NETWORK = process.env.NETWORK || "eip155:31611";
 const RPC_URL = process.env.RPC_URL || "https://rpc.test.mezo.org";
-const MUSD_ADDRESS =
-  (process.env.MUSD_ADDRESS as `0x${string}` | undefined) ||
-  "0x118917a40FAF1CD7a13dB0Ef56C86De7973Ac503";
 const EXPLORER_URL = process.env.EXPLORER_URL || "https://explorer.test.mezo.org";
+
+// Token info (address, decimals, name) auto-resolved from @x402/evm's
+// DEFAULT_STABLECOINS registry based on NETWORK.
+const TOKEN = DEFAULT_STABLECOINS[NETWORK as keyof typeof DEFAULT_STABLECOINS];
+if (!TOKEN) {
+  console.error(`No DEFAULT_STABLECOINS entry for NETWORK=${NETWORK}`);
+  process.exit(1);
+}
+const TOKEN_ADDRESS = TOKEN.address as `0x${string}`;
+const TOKEN_DIVISOR = 10 ** TOKEN.decimals;
 
 interface Purchase {
   index: number;
@@ -64,14 +71,14 @@ async function main() {
   });
 
   const startBalance = await publicClient.readContract({
-    address: MUSD_ADDRESS,
+    address: TOKEN_ADDRESS,
     abi: erc20Abi,
     functionName: "balanceOf",
     args: [account.address],
   });
 
   const allowance = await publicClient.readContract({
-    address: MUSD_ADDRESS,
+    address: TOKEN_ADDRESS,
     abi: erc20Abi,
     functionName: "allowance",
     args: [account.address, PERMIT2_ADDRESS as `0x${string}`],
@@ -83,11 +90,11 @@ async function main() {
   console.log(`Target:    ${RESOURCE_URL}`);
   console.log(`Count:     ${count} joke${count === 1 ? "" : "s"}`);
   console.log(
-    `Balance:   ${(Number(startBalance) / 1e18).toFixed(4)} mUSD (${startBalance} wei)`,
+    `Balance:   ${(Number(startBalance) / TOKEN_DIVISOR).toFixed(4)} ${TOKEN.name} (${startBalance} wei)`,
   );
   if (allowance === 0n) {
     console.warn(
-      "WARNING: mUSD not approved for Permit2. The first purchase will likely fail until you do a one-time approve(permit2, max) on the mUSD contract.",
+      `WARNING: ${TOKEN.name} not approved for Permit2. The first purchase will likely fail until you do a one-time approve(permit2, max) on the ${TOKEN.name} contract.`,
     );
   }
   console.log("");
@@ -143,7 +150,7 @@ async function main() {
   }
 
   const endBalance = await publicClient.readContract({
-    address: MUSD_ADDRESS,
+    address: TOKEN_ADDRESS,
     abi: erc20Abi,
     functionName: "balanceOf",
     args: [account.address],
@@ -153,10 +160,10 @@ async function main() {
   console.log("=== Summary ===");
   console.log(`Purchases:     ${purchases.length}/${count} successful`);
   console.log(
-    `mUSD spent:    ${(Number(spent) / 1e18).toFixed(4)} mUSD (${spent} wei)`,
+    `${TOKEN.name} spent:    ${(Number(spent) / TOKEN_DIVISOR).toFixed(4)} ${TOKEN.name} (${spent} wei)`,
   );
   console.log(
-    `Balance after: ${(Number(endBalance) / 1e18).toFixed(4)} mUSD (${endBalance} wei)`,
+    `Balance after: ${(Number(endBalance) / TOKEN_DIVISOR).toFixed(4)} ${TOKEN.name} (${endBalance} wei)`,
   );
   console.log("");
   console.log("Transactions:");

@@ -79,10 +79,17 @@ Buyer explorer: https://explorer.test.mezo.org/address/0xfD9cC31Bab44C3d62335d82
 | `COUNT`             | `3`                                     | Number of purchases per run                |
 | `NETWORK`           | `eip155:31611`                          | CAIP-2 chain id (Mezo Testnet)             |
 | `RPC_URL`           | `https://rpc.test.mezo.org`             | Read-only RPC for balance/allowance checks |
-| `MUSD_ADDRESS`      | `0x118917...Ac503`                      | mUSD token on Mezo Testnet                 |
 | `EXPLORER_URL`      | `https://explorer.test.mezo.org`        | Base URL for tx + address links            |
 
 Also accepts `--count <N>` on the CLI, which takes precedence over `COUNT` in env.
+
+## Default token
+
+This demo uses Mezo Testnet's canonical mUSD token:
+[`0x118917a40FAF1CD7a13dB0Ef56C86De7973Ac503`](https://explorer.test.mezo.org/address/0x118917a40FAF1CD7a13dB0Ef56C86De7973Ac503).
+The address is auto-resolved from `@x402/evm`'s `DEFAULT_STABLECOINS`
+registry based on the `NETWORK` env var; to verify, see
+`node_modules/@x402/evm/dist/cjs/index.js`.
 
 ## Troubleshooting
 
