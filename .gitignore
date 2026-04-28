@@ -37,3 +37,8 @@ Thumbs.db
 
 # Runtime
 .cache/
+
+# Gas City
+.beads/*
+!.beads/config.yaml
+!.beads/metadata.json
