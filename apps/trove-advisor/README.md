@@ -34,6 +34,14 @@ The server is pure data+math. No LLM on the server side — the only LLM is the 
 - A Mezo Testnet wallet with a small MUSD balance (0.0054+ MUSD for the default run). See [`../joke-buyer/README.md`](../joke-buyer/README.md#prerequisites) for how to get some.
 - One-time: the client wallet has approved canonical Permit2 (`0x000000000022D473030F116dDEE9F6B43aC78BA3`) to spend MUSD. Without this, the first call fails.
 
+## Default token
+
+This demo uses Mezo Testnet's canonical mUSD token:
+[`0x118917a40FAF1CD7a13dB0Ef56C86De7973Ac503`](https://explorer.test.mezo.org/address/0x118917a40FAF1CD7a13dB0Ef56C86De7973Ac503).
+The address is auto-resolved from `@x402/evm`'s `DEFAULT_STABLECOINS`
+registry based on the `NETWORK` env var; to verify, see
+`node_modules/@x402/evm/dist/cjs/index.js`.
+
 ## Setup
 
 ```bash
