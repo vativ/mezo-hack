@@ -133,7 +133,7 @@ Two endpoints charge per unit of work. `@x402/core`'s `PaymentOption.price` acce
 
 The 402 response emitted to the client already reflects the request-specific amount, so `@x402/fetch` on the agent side signs exactly that and retries — no separate negotiation round trip.
 
-For `/liquidations/queue`, the client pays upfront based on `?limit=N`, but if the on-chain SortedTroves list has fewer troves than `limit`, the handler sets the `Settlement-Overrides` response header so the middleware settles only for the rows actually returned.
+For `/liquidations/queue`, the client pays upfront based on `?limit=N`, but if the on-chain SortedTroves list has fewer troves than `limit`, the handler calls `setSettlementOverrides(res, { amount })` (typed helper from `@x402/express`, shipped in 2.9.0+) so the middleware settles only for the rows actually returned.
 
 ## Troubleshooting
 
