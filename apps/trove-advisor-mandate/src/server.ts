@@ -17,7 +17,7 @@
 
 import "dotenv/config";
 
-import { paymentMiddleware, x402ResourceServer } from "@x402/express";
+import { paymentMiddleware, setSettlementOverrides, x402ResourceServer } from "@x402/express";
 import { ExactEvmScheme } from "@x402/evm/exact/server";
 import { HTTPFacilitatorClient } from "@x402/core/server";
 import type { Network } from "@x402/core/types";
@@ -355,10 +355,7 @@ app.get("/liquidations/queue", async (req: Request, res: Response) => {
   // SETTLEMENT_OVERRIDES_HEADER mechanism.)
   if (rows.length < limit) {
     const refundedAmount = HUNTER_PER_ROW_WEI * BigInt(rows.length);
-    res.setHeader(
-      "Settlement-Overrides",
-      JSON.stringify({ amount: refundedAmount.toString() }),
-    );
+    setSettlementOverrides(res, { amount: refundedAmount.toString() });
   }
   res.json({
     btcUsd: o.btcUsd,
