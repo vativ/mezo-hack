@@ -19,6 +19,7 @@ import "dotenv/config";
 
 import { paymentMiddleware, setSettlementOverrides, x402ResourceServer } from "@x402/express";
 import { ExactEvmScheme } from "@x402/evm/exact/server";
+import { DEFAULT_STABLECOINS } from "@x402/evm";
 import { HTTPFacilitatorClient } from "@x402/core/server";
 import type { Network } from "@x402/core/types";
 import cors from "cors";
@@ -34,8 +35,17 @@ const NETWORK = (process.env.NETWORK || "eip155:31611") as Network;
 const RPC_URL = process.env.RPC_URL || "https://rpc.test.mezo.org";
 const FACILITATOR_URL = process.env.FACILITATOR_URL || "https://facilitator.vativ.io";
 
-const MUSD_ADDRESS = (process.env.MUSD_ADDRESS as Address) ||
-  "0x118917a40FAF1CD7a13dB0Ef56C86De7973Ac503";
+// Token info (address, decimals, name, version, assetTransferMethod,
+// supportsEip2612) auto-resolved from @x402/evm DEFAULT_STABLECOINS
+// based on NETWORK.
+const TOKEN = DEFAULT_STABLECOINS[NETWORK as keyof typeof DEFAULT_STABLECOINS];
+if (!TOKEN) {
+  console.error(`No DEFAULT_STABLECOINS entry for NETWORK=${NETWORK}`);
+  process.exit(1);
+}
+const TOKEN_ADDRESS = TOKEN.address as Address;
+const TOKEN_DIVISOR_BIGINT = 10n ** BigInt(TOKEN.decimals);
+
 const SKIP_ORACLE = (process.env.SKIP_ORACLE as Address) ||
   "0x7b7c000000000000000000000000000000000015";
 const SORTED_TROVES = (process.env.SORTED_TROVES as Address) ||
@@ -54,10 +64,10 @@ const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000" as const;
 const MCR_BPS = 11000n; // 110% Minimum Collateralization Ratio, basis points
 
 const MUSD_EXTRA = {
-  name: "Mezo USD",
-  version: "1",
-  assetTransferMethod: "permit2",
-  supportsEip2612: true,
+  name: TOKEN.name,
+  version: TOKEN.version,
+  assetTransferMethod: TOKEN.assetTransferMethod,
+  supportsEip2612: TOKEN.supportsEip2612,
 } as const;
 
 const pub = createPublicClient({ chain: mezoTestnet, transport: http(RPC_URL) });
@@ -73,7 +83,7 @@ const HUNTER_PER_ROW_WEI = 500000000000000n; // 0.0005 MUSD
 
 function musdPrice(amountWei: bigint) {
   return {
-    asset: MUSD_ADDRESS,
+    asset: TOKEN_ADDRESS,
     amount: amountWei.toString(),
     extra: MUSD_EXTRA,
   };
@@ -169,7 +179,7 @@ async function walkTroves(limit: number, price1e18: bigint): Promise<TroveRow[]>
     const [debtWei, collWei] = debtAndColl;
     const icrPct = Number(icrScaled) / 1e16; // scaled 1e18 → percent
     const collBtc = Number(collWei) / 1e18;
-    const debtMusd = Number(debtWei) / 1e18;
+    const debtMusd = Number(debtWei) / Number(TOKEN_DIVISOR_BIGINT);
     // liquidation price: price at which ICR falls below MCR (110%)
     //   ICR = (coll * price) / debt == MCR
     //   price = MCR * debt / coll

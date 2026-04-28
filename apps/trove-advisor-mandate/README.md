@@ -84,6 +84,14 @@ The server is identical to Demo 2 — same three endpoints, same prices, same me
 
 Same as Demo 2: Node 20+, pnpm, an Anthropic API key, a Mezo Testnet wallet with at least 0.003 MUSD, and a one-time permit2 approval on MUSD.
 
+## Default token
+
+This demo uses Mezo Testnet's canonical mUSD token:
+[`0x118917a40FAF1CD7a13dB0Ef56C86De7973Ac503`](https://explorer.test.mezo.org/address/0x118917a40FAF1CD7a13dB0Ef56C86De7973Ac503).
+The address is auto-resolved from `@x402/evm`'s `DEFAULT_STABLECOINS`
+registry based on the `NETWORK` env var; to verify, see
+`node_modules/@x402/evm/dist/cjs/index.js`.
+
 ## Setup + run
 
 ```bash
