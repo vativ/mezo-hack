@@ -95,3 +95,23 @@ Also accepts `--count <N>` on the CLI, which takes precedence over `COUNT` in en
 ## Install from npm/yarn (not pnpm)
 
 The `pnpm.overrides` block is pnpm-specific. For npm use [`npm overrides`](https://docs.npmjs.com/cli/v10/configuring-npm/package-json#overrides); for yarn use [`resolutions`](https://yarnpkg.com/configuration/manifest#resolutions). Same tarball URL, same idea — force the `@x402/evm` resolution through the preview tarball so nothing falls back to canonical npm.
+
+## Rich docs
+
+For the full walkthrough — what each component does, how the
+`onBeforePaymentCreation` hook fits in, troubleshooting, and
+the canonical x402 v2.11.0 dependency setup — see the
+consolidated docs branch on `ryanRfox/mezo-docs`:
+
+- This demo's page:
+  https://github.com/ryanRfox/mezo-docs/blob/docs/x402-v2.11.0-consolidated/src/content/docs/docs/developers/getting-started/musd-payments-x402/agentic-joke-buyer.mdx
+
+(Preview URL; will be fixed to the canonical published URL once
+the docs ship upstream.)
+
+## Versions
+
+This app pins canonical `@x402/*` packages to `^2.11.0` on this
+feat branch. `main` of `vativ/mezo-hack` still references the
+`v2.10.0-mezo.7` preview tarball overrides — to follow the
+quickstart docs verbatim, `git checkout feat/agentic-1-joke-buyer-x402-2.11.0-canonical` first.
