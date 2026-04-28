@@ -11,10 +11,10 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.85.0",
-    "@x402/core": "^2.10.0",
-    "@x402/evm": "^2.10.0",
-    "@x402/express": "^2.10.0",
-    "@x402/fetch": "^2.10.0",
+    "@x402/core": "^2.11.0",
+    "@x402/evm": "^2.11.0",
+    "@x402/express": "^2.11.0",
+    "@x402/fetch": "^2.11.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.21.2",
@@ -26,10 +26,5 @@
     "@types/node": "^22.10.1",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2"
-  },
-  "pnpm": {
-    "overrides": {
-      "@x402/evm": "https://github.com/vativ/x402-mezo-preview/releases/download/v2.10.0-mezo.7/x402-evm-2.10.0-mezo.7.tgz"
-    }
   }
 }
