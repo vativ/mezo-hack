@@ -11,7 +11,7 @@ import "dotenv/config";
 
 import { wrapFetchWithPayment, x402Client, decodePaymentResponseHeader } from "@x402/fetch";
 import { ExactEvmScheme } from "@x402/evm/exact/client";
-import { toClientEvmSigner, PERMIT2_ADDRESS } from "@x402/evm";
+import { toClientEvmSigner, PERMIT2_ADDRESS, DEFAULT_STABLECOINS } from "@x402/evm";
 import { createPublicClient, http, erc20Abi } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { mezoTestnet } from "viem/chains";
@@ -19,7 +19,15 @@ import { mezoTestnet } from "viem/chains";
 const RESOURCE_URL = process.env.RESOURCE_URL || "http://localhost:3000/joke";
 const NETWORK = process.env.NETWORK || "eip155:31611";
 const RPC_URL = process.env.RPC_URL || process.env.MEZO_RPC_URL || "https://rpc.test.mezo.org";
-const MUSD_ADDRESS = process.env.MUSD_ADDRESS as `0x${string}` | undefined;
+
+// Token info (address, decimals, name) auto-resolved from @x402/evm's
+// DEFAULT_STABLECOINS registry based on NETWORK.
+const TOKEN = DEFAULT_STABLECOINS[NETWORK as keyof typeof DEFAULT_STABLECOINS];
+if (!TOKEN) {
+  console.error(`No DEFAULT_STABLECOINS entry for NETWORK=${NETWORK}`);
+  process.exit(1);
+}
+const TOKEN_DIVISOR = 10 ** TOKEN.decimals;
 
 async function main() {
   if (!process.env.CLIENT_PRIVATE_KEY) {
@@ -38,28 +46,26 @@ async function main() {
     transport: http(RPC_URL),
   });
 
-  // Check mUSD balance
-  let startBalance = 0n;
-  if (MUSD_ADDRESS) {
-    startBalance = await publicClient.readContract({
-      address: MUSD_ADDRESS,
-      abi: erc20Abi,
-      functionName: "balanceOf",
-      args: [account.address],
-    });
-    console.log(`mUSD balance: ${startBalance} (${(Number(startBalance) / 1e18).toFixed(4)} mUSD)`);
+  // Check token balance
+  const tokenAddress = TOKEN.address as `0x${string}`;
+  const startBalance = await publicClient.readContract({
+    address: tokenAddress,
+    abi: erc20Abi,
+    functionName: "balanceOf",
+    args: [account.address],
+  });
+  console.log(`${TOKEN.name} balance: ${startBalance} (${(Number(startBalance) / TOKEN_DIVISOR).toFixed(4)} ${TOKEN.name})`);
 
-    // Check Permit2 allowance
-    const permit2Addr = (process.env.PERMIT2_ADDRESS || PERMIT2_ADDRESS) as `0x${string}`;
-    const allowance = await publicClient.readContract({
-      address: MUSD_ADDRESS,
-      abi: erc20Abi,
-      functionName: "allowance",
-      args: [account.address, permit2Addr],
-    });
-    if (allowance === 0n) {
-      console.warn("WARNING: mUSD not approved for Permit2. Run deploy-local.sh or approve manually.");
-    }
+  // Check Permit2 allowance
+  const permit2Addr = (process.env.PERMIT2_ADDRESS || PERMIT2_ADDRESS) as `0x${string}`;
+  const allowance = await publicClient.readContract({
+    address: tokenAddress,
+    abi: erc20Abi,
+    functionName: "allowance",
+    args: [account.address, permit2Addr],
+  });
+  if (allowance === 0n) {
+    console.warn(`WARNING: ${TOKEN.name} not approved for Permit2. Run the cast send approve recipe in the demo docs.`);
   }
 
   // Create x402 client with EVM exact scheme and wrap fetch
@@ -102,18 +108,16 @@ async function main() {
   }
 
   // Show ending balance and delta to confirm on-chain settlement
-  if (MUSD_ADDRESS) {
-    const endBalance = await publicClient.readContract({
-      address: MUSD_ADDRESS,
-      abi: erc20Abi,
-      functionName: "balanceOf",
-      args: [account.address],
-    });
-    const delta = startBalance - endBalance;
-    console.log(`\nmUSD balance after:  ${endBalance} (${(Number(endBalance) / 1e18).toFixed(4)} mUSD)`);
-    console.log(`mUSD balance before: ${startBalance} (${(Number(startBalance) / 1e18).toFixed(4)} mUSD)`);
-    console.log(`mUSD deducted:       ${delta} (${(Number(delta) / 1e18).toFixed(4)} mUSD)`);
-  }
+  const endBalance = await publicClient.readContract({
+    address: tokenAddress,
+    abi: erc20Abi,
+    functionName: "balanceOf",
+    args: [account.address],
+  });
+  const delta = startBalance - endBalance;
+  console.log(`\n${TOKEN.name} balance after:  ${endBalance} (${(Number(endBalance) / TOKEN_DIVISOR).toFixed(4)} ${TOKEN.name})`);
+  console.log(`${TOKEN.name} balance before: ${startBalance} (${(Number(startBalance) / TOKEN_DIVISOR).toFixed(4)} ${TOKEN.name})`);
+  console.log(`${TOKEN.name} deducted:       ${delta} (${(Number(delta) / TOKEN_DIVISOR).toFixed(4)} ${TOKEN.name})`);
 }
 
 main().catch((err) => {

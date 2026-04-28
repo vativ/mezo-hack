@@ -29,6 +29,14 @@ To get testnet mUSD: grab testnet BTC from the
 [Mezo Faucet](https://faucet.test.mezo.org), then borrow mUSD against
 it using the Mezo Testnet dapp (standard Mezo flow).
 
+## Default token
+
+This demo uses Mezo Testnet's canonical mUSD token:
+[`0x118917a40FAF1CD7a13dB0Ef56C86De7973Ac503`](https://explorer.test.mezo.org/address/0x118917a40FAF1CD7a13dB0Ef56C86De7973Ac503).
+The address is auto-resolved from `@x402/evm`'s `DEFAULT_STABLECOINS`
+registry based on the `NETWORK` env var; to verify, see
+`node_modules/@x402/evm/dist/cjs/index.js`.
+
 ## Quickstart
 
 ```bash
