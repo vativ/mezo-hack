@@ -120,7 +120,7 @@ async function main() {
 
       const paymentResponseHeader =
         response.headers.get("PAYMENT-RESPONSE") ||
-        response.headers.get("X-PAYMENT-RESPONSE");
+        response.headers.get("PAYMENT-RESPONSE");
       const settle = paymentResponseHeader
         ? decodePaymentResponseHeader(paymentResponseHeader)
         : undefined;
