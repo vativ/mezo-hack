@@ -111,7 +111,7 @@ async function paidFetch(tool: string, url: string, init?: RequestInit): Promise
       throw new PolicyDenialError(`policy_denied: ${reason}`);
     }
     const paymentResponseHeader =
-      resp.headers.get("PAYMENT-RESPONSE") || resp.headers.get("X-PAYMENT-RESPONSE");
+      resp.headers.get("PAYMENT-RESPONSE") || resp.headers.get("PAYMENT-RESPONSE");
     let settle: ReturnType<typeof decodePaymentResponseHeader> | undefined;
     if (paymentResponseHeader) {
       settle = decodePaymentResponseHeader(paymentResponseHeader);

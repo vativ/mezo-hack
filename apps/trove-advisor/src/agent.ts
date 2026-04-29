@@ -63,7 +63,7 @@ async function paidFetch(tool: string, url: string, init?: RequestInit): Promise
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
     const resp = await fetchWithPay(url, init);
     const paymentResponseHeader =
-      resp.headers.get("PAYMENT-RESPONSE") || resp.headers.get("X-PAYMENT-RESPONSE");
+      resp.headers.get("PAYMENT-RESPONSE") || resp.headers.get("PAYMENT-RESPONSE");
     let settle: ReturnType<typeof decodePaymentResponseHeader> | undefined;
     if (paymentResponseHeader) {
       settle = decodePaymentResponseHeader(paymentResponseHeader);
