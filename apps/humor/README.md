@@ -1,92 +1,87 @@
-# apps/humor — Mezo x402 joke paywall demo
+# apps/humor — Mezo x402 quickstart
 
-A minimal working x402 payment loop on Mezo Testnet: one paywalled HTTP endpoint and a reference client that pays for it.
+A minimal x402 payment loop on Mezo Testnet using the default
+`@x402/paywall` UI: one paywalled HTTP endpoint and a reference
+client that pays for it.
 
-- **Server** — Express app with `GET /joke` paywalled at 0.001 mUSD. Returns `{ setup, punchline }` as JSON once paid.
-- **Client** — `@x402/fetch`-wrapped HTTP client that detects a 402, signs a permit2 authorization from a funded testnet wallet, retries, and prints the joke.
+- **Server** — Express app with `GET /joke` paywalled at 0.001 mUSD.
+  Returns `{ setup, punchline }` as JSON once paid.
+- **Client** — `@x402/fetch`-wrapped HTTP client that detects a 402,
+  signs a permit2 authorization from a funded testnet wallet,
+  retries, and prints the joke.
 
-This is a hackathon starter template. Fork it, swap `/joke` for your own paywalled route, keep the middleware wiring.
+This is the **slim quickstart**: copy-paste from the docs, shows what
+x402 ships out of the box. For the **production-style demo with custom
+UI on top of x402**, see
+[`ryanRfox/gt-mezo-x402`](https://github.com/ryanRfox/gt-mezo-x402)
+(the live deployment at `humor.vativ.io`).
 
 ## Prerequisites
 
 - Node.js 20+
-- pnpm (npm/yarn work too — see note on `overrides` below)
-- A Mezo Testnet wallet with a small balance of testnet mUSD (for the client)
-- Any address you control (for the server's payee — no key needed)
+- pnpm
+- A Mezo Testnet wallet with a small balance of testnet mUSD (for
+  the client)
+- Any EVM address you control (for the server's payee — no key
+  needed on the server side)
 
-### Get testnet mUSD
+To get testnet mUSD: grab testnet BTC from the
+[Mezo Faucet](https://faucet.test.mezo.org), then borrow mUSD against
+it using the Mezo Testnet dapp (standard Mezo flow).
 
-1. Grab testnet BTC from the [Mezo Faucet](https://faucet.test.mezo.org).
-2. Borrow mUSD against that BTC using the Mezo Testnet dapp (standard Mezo flow).
+## Default token
 
-## Setup
+This demo uses Mezo Testnet's canonical mUSD token:
+[`0x118917a40FAF1CD7a13dB0Ef56C86De7973Ac503`](https://explorer.test.mezo.org/address/0x118917a40FAF1CD7a13dB0Ef56C86De7973Ac503).
+The address is auto-resolved from `@x402/evm`'s `DEFAULT_STABLECOINS`
+registry based on the `NETWORK` env var; to verify, see
+`node_modules/@x402/evm/dist/cjs/index.js`.
+
+## Quickstart
 
 ```bash
+# Server-side env (set EVM_ADDRESS to any address you control)
 cp .env.example server/.env
-cp .env.example client/.env
-# Edit both: fill EVM_ADDRESS in server/.env, CLIENT_PRIVATE_KEY in client/.env
-```
 
-Install dependencies (each workspace installs its own tarball set):
+# Client-side env (set CLIENT_PRIVATE_KEY to a funded testnet wallet)
+cp client/.env.example client/.env
 
-```bash
+# Install
 ( cd server && pnpm install )
 ( cd client && pnpm install )
+
+# Terminal 1: server on :3000
+( cd server && pnpm run humor )
+
+# Terminal 2: client pays /joke
+( cd client && pnpm run client )
 ```
 
-## Run
+The client should print `=== Payment Successful ===` followed by the
+joke payload and a `PAYMENT-RESPONSE` header carrying the on-chain tx
+hash. Look the tx up on
+[`explorer.test.mezo.org`](https://explorer.test.mezo.org) to see the
+mUSD flow on chain.
 
-Terminal 1 — server:
+## Rich docs
 
-```bash
-cd server
-pnpm run humor
-# Mezo x402 Humor Server on port 3000
-#   GET /joke — 0.001 mUSD (x402 paywalled)
-#   Facilitator: https://facilitator.vativ.io
-```
+For the full walkthrough — what each component does, how the 402
+handshake settles via the facilitator, troubleshooting, and the
+`onBeforePaymentCreation` policy hook used by the agentic demos — see
+the consolidated docs branch:
 
-Terminal 2 — client:
+- Quickstart page:
+  https://github.com/ryanRfox/mezo-docs/blob/docs/x402-v2.11.0-consolidated/src/content/docs/docs/developers/getting-started/musd-payments-x402/x402-quickstart.mdx
 
-```bash
-cd client
-pnpm run client
-# Client wallet: 0x...
-# mUSD balance: 10000000000000000000 (10.0000 mUSD)
-# Requesting: http://localhost:3000/joke
-#
-# === Payment Successful ===
-# Data: { "setup": "...", "punchline": "..." }
-#
-# PAYMENT-RESPONSE received (payment receipt from resource server):
-#   success:     true
-#   transaction: 0x...
-#   network:     eip155:31611
-# mUSD deducted: 1000000000000000 (0.0010 mUSD)
-```
+(Preview URL; will be fixed to the canonical published URL once the
+docs ship upstream.)
 
-## How it works
+## Versions
 
-1. Client GETs `/joke` with no payment → server returns `402 Payment Required` with an x402 challenge (scheme: `exact`, asset: mUSD, amount: `1000000000000000`).
-2. `wrapFetchWithPayment` signs a permit2 `SignatureTransferDetails` authorization for `amount` from the client wallet to the server's `EVM_ADDRESS`, retries the request with an `X-PAYMENT` header.
-3. Server's `paymentMiddleware` forwards the payload to the facilitator at `FACILITATOR_URL`. The facilitator submits the on-chain `permitTransferFrom` tx.
-4. Facilitator returns settlement receipt; server sends `200 OK` with the joke + a `PAYMENT-RESPONSE` header containing the tx hash.
-
-## Install from npm/yarn (not pnpm)
-
-The `pnpm.overrides` block in each `package.json` is pnpm-specific. For npm use [`npm overrides`](https://docs.npmjs.com/cli/v10/configuring-npm/package-json#overrides); for yarn use [`resolutions`](https://yarnpkg.com/configuration/manifest#resolutions). Same tarball URLs, same idea — force every `@x402/*` resolution in the dep graph through the preview tarballs so nothing falls back to canonical npm (which lacks the Mezo-specific exports).
-
-## Troubleshooting
-
-- **Client exits with `CLIENT_PRIVATE_KEY environment variable is required`** — you skipped the `.env` step in the client workspace.
-- **`WARNING: mUSD not approved for Permit2`** — your wallet has never approved the canonical Permit2 (`0x000000000022D473030F116dDEE9F6B43aC78BA3`) to spend mUSD. Do a one-time `approve(permit2, max)` on the mUSD contract for your client wallet.
-- **`402` with no retry / payment fails** — check the client wallet has non-zero testnet mUSD and that `RESOURCE_URL` matches where the server is listening.
-- **`does not provide an export named 'DEFAULT_STABLECOINS'`** — `pnpm.overrides` (or npm/yarn equivalent) isn't forcing the `@x402/*` graph through the preview tarballs. Canonical `@x402/evm@2.10.0` on npm omits that export; the preview tarball restores it.
-- **Wrong chain in wallet UI** — the paywall uses Mezo Testnet (`eip155:31611`). Make sure your wallet has the chain added with RPC `https://rpc.test.mezo.org`.
-
-## Live reference deployment
-
-A live version of this exact server runs at `https://humor.vativ.io/joke` against facilitator fleet `https://facilitator.vativ.io`. Hitting it with no payment returns a 402 + paywall HTML; hitting it with this client (pointed at `RESOURCE_URL=https://humor.vativ.io/joke`) settles a real on-chain payment.
+This app pins canonical `@x402/paywall` and `@x402/evm` to `^2.11.0`
+on this feat branch. `main` of `vativ/mezo-hack` still references the
+preview tarball overrides — to follow these instructions verbatim,
+`git checkout feat/quickstart-humor-x402-2.11.0-canonical` first.
 
 ## License
 
